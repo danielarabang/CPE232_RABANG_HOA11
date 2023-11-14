@@ -1,48 +1,46 @@
 ---
-- hosts: all
+- name: Install Docker and build Docker image
+  hosts: all
   become: yes
+
   tasks:
-    - name: Install Docker and enable the Docker socket
+    - name: Update apt cache (for Ubuntu)
       apt:
-        name: docker.io
-        update_cache: yes
-      when: ansible_distribution == "CentOS"
-
-    - name: Add user to the Docker group
-      user:
-        name: "{{ daniela }}"
-        groups: docker
-      when: ansible_distribution == "CentOS"
-   
-    - name: Copy Dockerfile
-      copy:
-        src: dockerfile
-        dest: /home/daniela/CPE232_RABANG_HOA11/dockerfile
-      when: ansible_distribution == "CentOS"
-
-    - name: Build Docker image
-      command: docker build -t install1.0 /home/daniela/CPE232_RABANG_HOA11/file
-      when: ansible_distribution == "CentOS"
-
-    - name: Install Docker and enable the Docker socket
-      apt:
-        name: docker.io
         update_cache: yes
       when: ansible_distribution == "Ubuntu"
 
-    - name: Add user to the Docker group
-      user:
-        name: "{{ daniela }}"
-        groups: docker
+    - name: Install required packages for Docker
+      package:
+        name:
+          - docker
+          - docker-compose
       when: ansible_distribution == "Ubuntu"
 
-    - name: Copy Dockerfile
-      copy:
-        src: dockerfile
-        dest: /home/daniela/CPE232_RABANG_HOA11/dockerfile
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
       when: ansible_distribution == "Ubuntu"
 
     - name: Build Docker image
-      command: docker build -t install1.0 /home/daniela/CPE232_RABANG_HOA11/file
+      command: "docker build -t apache1.0 /home/daniela/CPE232_RABANG_HOA11/file"
+      args:
+        executable: /bin/bash
       when: ansible_distribution == "Ubuntu"
+
+    - name: Install Docker on CentOS
+      yum:
+        name: docker
+        state: present
+      when: ansible_distribution == "CentOS"
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+      when: ansible_distribution == "CentOS"
+
+    - name: Build Docker image
+      command: "docker build -t apache1.0 /home/daniela/CPE232_RABANG_HOA11/file"
+      when: ansible_distribution == "CentOS"
 
